@@ -45,12 +45,12 @@ if uploaded_file is not None:
         \begin{document}
         Hello, world! Here is a math equation:
         $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$
-        1234
+        RESERVEDSTRING1
         \end{document}
         """
         # content = content.replace("RESERVEDINFOSTRING1", '123')
 
-        st.write(content)
+        # st.write(content)
 
         pdf_object = build_pdf(content)
         # st.write(f"{type(pdf_object)}")

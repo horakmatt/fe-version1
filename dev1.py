@@ -48,8 +48,8 @@ if uploaded_file is not None:
         RESERVEDSTRING1
         \end{document}
         """
-        # content = content.replace("RESERVEDINFOSTRING1", '123')
-
+        content = content.replace("RESERVEDSTRING1", '123')
+        #
         # st.write(content)
 
         pdf_object = build_pdf(content)

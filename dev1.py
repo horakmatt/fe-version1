@@ -39,7 +39,15 @@ if uploaded_file is not None:
         #     mime="text/csv",
         # )
         st.write("NEW NEW NEW")
-        content = r"Document content"
+        content = r"""
+        \documentclass{article}
+        \begin{document}
+        Hello, world! Here is a math equation:
+        $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$
+        \end{document}
+        """
+
+
         pdf_object = build_pdf(content)
         pdf_bytes = pdf_object.getbuffer()
         print(f"Generated PDF: {pdf_bytes[:10]}")

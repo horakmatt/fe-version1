@@ -38,13 +38,14 @@ if uploaded_file is not None:
         #     file_name="summary.csv",
         #     mime="text/csv",
         # )
-        st.write("NEW")
+        st.write("NEW1234")
         std = summary.loc['std', 'annual_revenue_gbp']
         content = r"""
         \documentclass{article}
         \begin{document}
         Hello, world! Here is a math equation:
         $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$
+        1234
         \end{document}
         """
         # content = content.replace("RESERVEDINFOSTRING1", '123')

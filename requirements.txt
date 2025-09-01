@@ -1,0 +1,5 @@
+catboost=1.2.3
+shap=0.48.0
+numpy=1.16.4
+pandas=2.3.2
+pylatex=1.4.2

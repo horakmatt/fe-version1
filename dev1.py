@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 
 st.title("CSV Uploader and Viewer")
 
@@ -21,7 +22,8 @@ if uploaded_file is not None:
         st.subheader("Basic Statistics:")
         st.write(dataframe.describe())
         st.write(f"""Here is more text\n
-                 and the contents of cell (0,0) {dataframe.iloc[0, 0]}
+                 and the contents of cell (0,0) {dataframe.iloc[0, 0]}\n
+                and here is pi {np.pi}"
         """)
 
     except Exception as e:

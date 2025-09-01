@@ -1,8 +1,11 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from pylatex import Document, Section, Command
-from pylatex.utils import NoEscape
+from latex import build_pdf
+import io
+
+# from pylatex import Document, Section, Command
+# from pylatex.utils import NoEscape
 
 st.title("CSV Uploader and Viewer")
 
@@ -36,20 +39,44 @@ if uploaded_file is not None:
         #     mime="text/csv",
         # )
 
-
-        doc = Document()
-        content = "Document content"
-        doc.append(NoEscape(content))
-        doc.generate_pdf('doc.pdf', clean_tex=False)
-        with open(f"doc.pdf", "rb") as f:
-            pdf_content = f.read()
-
+        content = r"Document content"
+        pdf_object = build_pdf(content)
         st.download_button(
             label="Download PDF",
-            data=pdf_content,
-            file_name="doc.pdf",
+            data=pdf_object,
+            file_name="pdf",
             mime="application/pdf",
         )
+
+
+        # doc = Document()
+        # content = "Document content"
+        # doc.append(NoEscape(content))
+        # doc.generate_pdf('doc.pdf', clean_tex=False)
+        # with open(f"doc.pdf", "rb") as f:
+        #     pdf_content = f.read()
+        #
+        # st.download_button(
+        #     label="Download PDF",
+        #     data=pdf_content,
+        #     file_name="doc.pdf",
+        #     mime="application/pdf",
+        # )
+
+
+        # doc = Document()
+        # content = "Document content"
+        # doc.append(NoEscape(content))
+        # doc.generate_pdf('doc.pdf', clean_tex=False)
+        # with open(f"doc.pdf", "rb") as f:
+        #     pdf_content = f.read()
+        #
+        # st.download_button(
+        #     label="Download PDF",
+        #     data=pdf_content,
+        #     file_name="doc.pdf",
+        #     mime="application/pdf",
+        # )
 
 
 

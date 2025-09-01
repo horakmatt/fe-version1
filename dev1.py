@@ -38,7 +38,7 @@ if uploaded_file is not None:
         #     file_name="summary.csv",
         #     mime="text/csv",
         # )
-        st.write("NEW NEW NEW")
+        st.write("NEW")
         content = r"""
         \documentclass{article}
         \begin{document}
@@ -49,12 +49,12 @@ if uploaded_file is not None:
 
 
         pdf_object = build_pdf(content)
-        # pdf_bytes = pdf_object.getbuffer()
+        pdf_bytes = pdf_object.getbuffer()
         # print(f"Generated PDF: {pdf_bytes[:10]}")
 
         st.download_button(
             label="Download PDF",
-            data=pdf_object,
+            data=pdf_bytes,
             file_name="pdf",
             mime="application/pdf",
         )

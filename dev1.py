@@ -48,7 +48,7 @@ if uploaded_file is not None:
         And here is the standard deviation of the annual_revenue_gbp column RESERVEDINFOSTRING1
         \end{document}
         """
-        content = content.replace("RESERVEDINFOSTRING1", f"{std}")
+        content = content.replace("RESERVEDINFOSTRING1", '123')
 
         pdf_object = build_pdf(content)
         st.write(f"{type(pdf_object)}")

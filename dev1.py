@@ -45,10 +45,10 @@ if uploaded_file is not None:
         \begin{document}
         Hello, world! Here is a math equation:
         $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$
-        And here is the standard deviation of the annual_revenue_gbp column 123
+        And here is the standard deviation of the annual_revenue_gbp column 1234
         \end{document}
         """
-        content = content.replace("RESERVEDINFOSTRING1", '123')
+        # content = content.replace("RESERVEDINFOSTRING1", '123')
 
         st.write(content)
 

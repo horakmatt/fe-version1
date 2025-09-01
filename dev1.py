@@ -50,6 +50,8 @@ if uploaded_file is not None:
         """
         content = content.replace("RESERVEDINFOSTRING1", '123')
 
+        st.write(content)
+
         pdf_object = build_pdf(content)
         st.write(f"{type(pdf_object)}")
         st.write(f"{dir(pdf_object)}")

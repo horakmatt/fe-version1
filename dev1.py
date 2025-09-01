@@ -27,7 +27,7 @@ if uploaded_file is not None:
                 and here is pi {np.pi}"
         """)
         summary = dataframe.describe()
-        summary_data = summary.to_csv(index=False)
+        summary_data = summary.to_csv(index=True)
         st.download_button(
             label="Download Summary Data",
             data=summary_data,

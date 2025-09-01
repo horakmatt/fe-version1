@@ -41,15 +41,15 @@ if uploaded_file is not None:
         content = "Document content"
         doc.append(NoEscape(content))
         doc.generate_pdf('doc.pdf', clean_tex=False)
-        # with open(f"doc.pdf", "rb") as f:
-        #     pdf_content = f.read()
-        #
-        # st.download_button(
-        #     label="Download PDF",
-        #     data=pdf_content,
-        #     file_name="doc.pdf",
-        #     mime="application/pdf",
-        # )
+        with open(f"doc.pdf", "rb") as f:
+            pdf_content = f.read()
+
+        st.download_button(
+            label="Download PDF",
+            data=pdf_content,
+            file_name="doc.pdf",
+            mime="application/pdf",
+        )
 
 
 

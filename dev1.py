@@ -26,6 +26,14 @@ if uploaded_file is not None:
                  and the contents of cell (0,0) {dataframe.iloc[0, 0]}\n
                 and here is pi {np.pi}"
         """)
+        summary = dataframe.describe()
+        summary_data = summary.to_csv(index=False)
+        st.download_button(
+            label="Download Summary Data",
+            data=summary_data,
+            file_name="summary.csv",
+            mime="text/csv",
+        )
 
     except Exception as e:
         st.error(f"Error reading CSV file: {e}")

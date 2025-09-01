@@ -48,7 +48,8 @@ if uploaded_file is not None:
         RESERVEDSTRING1
         \end{document}
         """
-        news = '123'
+        # news = '123'
+        news = str(std)
 
         content = content.replace("RESERVEDSTRING1", news)
         #

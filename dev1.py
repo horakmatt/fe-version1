@@ -40,10 +40,13 @@ if uploaded_file is not None:
         doc = Document()
         content = "Document content"
         doc.append(NoEscape(content))
+        doc.generate_pdf('doc.pdf', clean_tex=False)
+        with open(f"doc.pdf", "rb") as f:
+            pdf_content = f.read()
 
         st.download_button(
             label="Download PDF",
-            data=doc,
+            data=pdf_content,
             file_name="doc.pdf",
             mime="application/pdf",
         )

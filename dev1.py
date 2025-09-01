@@ -48,7 +48,9 @@ if uploaded_file is not None:
         RESERVEDSTRING1
         \end{document}
         """
-        content = content.replace("RESERVEDSTRING1", '123')
+        news = '123'
+
+        content = content.replace("RESERVEDSTRING1", news)
         #
         # st.write(content)
 

@@ -51,8 +51,8 @@ if uploaded_file is not None:
         pdf_object = build_pdf(content)
         st.write(f"{type(pdf_object)}")
         st.write(f"{dir(pdf_object)}")
-        # pdf_bytes = pdf_object.getbuffer()
-        # print(f"Generated PDF: {pdf_bytes[:10]}")
+        pdf_bytes = pdf_object.readb()
+        print(f"Generated PDF: {pdf_bytes[:10]}")
 
         st.download_button(
             label="Download PDF",

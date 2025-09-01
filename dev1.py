@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import pylatex
+from pylatex import Document, Section, Command
+from pylatex.utils import NoEscape
 
 st.title("CSV Uploader and Viewer")
 
@@ -34,6 +35,21 @@ if uploaded_file is not None:
             file_name="summary.csv",
             mime="text/csv",
         )
+
+
+        doc = Document()
+        content = "Document content"
+
+        st.download_button(
+            label="Download PDF",
+            data=doc,
+            file_name="doc.pdf",
+            mime="application/pdf",
+        )
+
+
+
+
 
     except Exception as e:
         st.error(f"Error reading CSV file: {e}")

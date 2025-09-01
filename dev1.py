@@ -49,7 +49,9 @@ if uploaded_file is not None:
 
 
         pdf_object = build_pdf(content)
-        pdf_bytes = pdf_object.getbuffer()
+        st.write(f"{type(pdf_object)}")
+        st.write(f"{dir(pdf_object)}")
+        # pdf_bytes = pdf_object.getbuffer()
         # print(f"Generated PDF: {pdf_bytes[:10]}")
 
         st.download_button(

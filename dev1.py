@@ -30,7 +30,7 @@ if uploaded_file is not None:
                  and the contents of cell (0,0) {dataframe.iloc[0, 0]}\n
                 and here is pi {np.pi}"
         """)
-        # summary = dataframe.describe()
+        summary = dataframe.describe()
         # summary_data = summary.to_csv(index=True)
         # st.download_button(
         #     label="Download Summary Data",
@@ -39,14 +39,16 @@ if uploaded_file is not None:
         #     mime="text/csv",
         # )
         st.write("NEW")
+        std = summary.loc['std', 'annual_revenue_gbp']
         content = r"""
         \documentclass{article}
         \begin{document}
         Hello, world! Here is a math equation:
         $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$
+        And here is the standard deviation of the annual_revenue_gbp column RESERVEDINFOSTRING1
         \end{document}
         """
-
+        content = content.replace("RESERVEDINFOSTRING1", f"{std}")
 
         pdf_object = build_pdf(content)
         st.write(f"{type(pdf_object)}")

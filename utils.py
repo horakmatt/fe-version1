@@ -95,8 +95,8 @@ def get_shap_values(model, df_samp):
     return shap_ser
 
 def find_loc_in_data(df, col, x):
-    n_less = df[df[col] < x].shape[0]
-    frac_less = n_less / len(df)
+    n_less = df[df[col] <= x].shape[0]
+    frac_less = 1 - n_less / len(df)
     return np.round(100*frac_less, 2)
 
 

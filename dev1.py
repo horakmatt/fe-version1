@@ -58,6 +58,7 @@ if uploaded_file is not None:
         # Read the uploaded CSV file into a pandas DataFrame
     df_samp = pd.read_csv(uploaded_file)
     df_samp.reset_index(inplace=True)
+    df_samp = df_samp.loc[:1]
     app_name = df_samp.loc[0,'application_id']
     st.write(f"We received and will evaluate the application data for applicant {app_name}.")
     df_samp = utils.load_and_process(df_samp)

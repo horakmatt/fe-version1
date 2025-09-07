@@ -37,6 +37,8 @@ decisions.  The Decline, Review and Accept zones defined by those thresholds are
 "<p style='text-align: center;'>DECLINE_ZONE < 0.2 < REVIEW_ZONE < 0.8 < ACCEPT_ZONE <\p>")
 # "<center>DECLINE_ZONE < 0.2 < REVIEW_ZONE < 0.8 < ACCEPT_ZONE</center>")
 
+st.markdown("<p style='text-align: center;'>This paragraph of text is centered.</p>", unsafe_allow_html=True)
+
 st.markdown(f"Results are provided back in three formats.\n"
 "1.  A csv containing all of the decisions together with the top three fields for each application influencing the decision \
 in the positive direction (towards 'accept') and the top three fields for each application influencing the decision \

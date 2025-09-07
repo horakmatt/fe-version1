@@ -84,14 +84,14 @@ if uploaded_file is not None:
     n_review = len(df_res[df_res['decision'] == 'Review'])
     n_decline = len(df_res[df_res['decision'] == 'Decline'])
 
-    st.markdown(f"""We successflly processed {len(df_res)} applicants with the following decision distribution.\n
-    * {n_accept} 'Accept' decisions
-    * {n_review} 'Review' decisions
-    * {n_decline} 'Decline' decisions""")
+    st.markdown("We successflly processed {len(df_res)} applicants with the following decision distribution.\n""
+    "* {n_accept} 'Accept' decisions\n"
+    "* {n_review} 'Review' decisions\n"
+    "* {n_decline} 'Decline' decisions")
 
-    st.markdown(" * abc\n"
-                "* def\n"
-                "* ghi")
+    # st.markdown(" * abc\n"
+    #             "* def\n"
+    #             "* ghi")
 
     st.write("Full summaries are available below.")
 

@@ -1,3 +1,4 @@
 *.ipynb
+*_bac*tex
 deploy_dev/
 old/

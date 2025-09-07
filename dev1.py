@@ -39,8 +39,8 @@ DECLINE_ZONE < 0.2 < REVIEW_ZONE < 0.8 < ACCEPT_ZONE\n""")
 st.markdown(f"Results are provided back in three formats.\n"
 "1.  A csv containing all of the decisions together with the top three fields for each application influencing the decision \
 in the positive direction (towards 'accept') and the top three fields for each application influencing the decision \
-in the negative direction (towards 'decline')."
-"2.  A text file containing further plain-English summaries of each decision, indended for use by the loan officer."
+in the negative direction (towards 'decline').\n"
+"2.  A text file containing further plain-English summaries of each decision, indended for use by the loan officer.\n"
 "3.  If there are any 'Decline' decisions, a zipped file containing a pdf file with justifications for each 'Decline' \
 decision is provided.  The pdfs is intended for the applicants.""")
 

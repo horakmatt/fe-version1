@@ -13,8 +13,8 @@ import utils
 df_ground = pd.read_csv('data/train.csv')
 df_sample_data = pd.read_csv('data/sample_data.csv')
 sample_data = df_sample_data.to_csv(index=False) #Create the data sample for users to dlwnload.
-with open('latex_data/letter_template.tex', 'r') as f:
-    base_letter = f.read()
+with open('latex_data/document_template.tex', 'r') as f:
+    base_latex = f.read()
 
 
 model = CatBoostRegressor()
@@ -47,8 +47,9 @@ Results are provided back in three formats.\n
 in the positive direction (towards 'accept') and the top three fields for each application influencing the decision \
 in the negative direction (towards 'decline').
 2.  A text file containing further plain-English summaries of each decision, indended for use by the loan officer.
-3.  A zipped file containing a pdf file with justifications for each 'Decline' decision.  The pdfs is intended for the \
- applicants.  If there was no declined application, then  no zipped file will be produced.""")
+3.  If there are any 'Decline' decisions, a zipped file containing a pdf file with justifications for each 'Decline' \
+decision is provided.  The pdfs is intended for the \
+ applicants.""")
 
 st.write("The data you enter should be in csv form and have the same format as sample data that \
 can be downloaded below.")
@@ -75,7 +76,7 @@ if uploaded_file is not None:
     df_res, explanations, zip_bytes = utils.process_apps(df_samp=df_samp,
                                                         model=model,
                                                         df_ground=df_ground,
-                                                        base_letter=base_letter)
+                                                        base_latex=base_latex)
     summary_csv = df_res.to_csv(index=False)
 
     st.download_button(

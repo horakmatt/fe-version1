@@ -237,7 +237,7 @@ def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name):
 
     return explanation
 
-def make_letter_pdf(base_letter, app_name, dict_neg, dict_pos):
+def make_letter_pdf(base_latex, app_name, dict_neg, dict_pos):
     nf1 = dict_neg[0][0]
     nv1 = dict_neg[0][1]
     nf2 = dict_neg[1][0]
@@ -253,22 +253,22 @@ def make_letter_pdf(base_letter, app_name, dict_neg, dict_pos):
     pf1 = pf1.replace('_', '\\_')
 
 
-    base_letter = base_letter.replace('RESERVEDAPPID1', str(app_name))
-    base_letter = base_letter.replace('RESERVEDNEGVALUE1', str(nv1))
-    base_letter = base_letter.replace('RESERVEDNEGVALUE2', str(nv2))
-    base_letter = base_letter.replace('RESERVEDNEGVALUE3', str(nv3))
-    base_letter = base_letter.replace('RESERVEDNEGFIELD1', str(nf1))
-    base_letter = base_letter.replace('RESERVEDNEGFIELD2', str(nf2))
-    base_letter = base_letter.replace('RESERVEDNEGFIELD3', str(nf3))
-    base_letter = base_letter.replace('RESERVEDPOSVALUE1', str(pv1))
-    base_letter = base_letter.replace('RESERVEDPOSFIELD1', str(pf1))
+    base_latex = base_latex.replace('RESERVEDAPPID1', str(app_name))
+    base_latex = base_latex.replace('RESERVEDNEGVALUE1', str(nv1))
+    base_latex = base_latex.replace('RESERVEDNEGVALUE2', str(nv2))
+    base_latex = base_latex.replace('RESERVEDNEGVALUE3', str(nv3))
+    base_latex = base_latex.replace('RESERVEDNEGFIELD1', str(nf1))
+    base_latex = base_latex.replace('RESERVEDNEGFIELD2', str(nf2))
+    base_latex = base_latex.replace('RESERVEDNEGFIELD3', str(nf3))
+    base_latex = base_latex.replace('RESERVEDPOSVALUE1', str(pv1))
+    base_latex = base_latex.replace('RESERVEDPOSFIELD1', str(pf1))
 
-    pdf_object = build_pdf(base_letter)
+    pdf_object = build_pdf(base_latex)
     pdf_bytes = pdf_object.readb()
 
     return pdf_bytes
 
-def process_apps(df_samp, model, df_ground, base_letter):
+def process_apps(df_samp, model, df_ground, base_latex):
     # df_samp.reset_index(inplace=True)
     cols = ['application_id', 'decision', 'score',
             'pos_field1', 'pos_value1', 'pos_pct1',
@@ -283,7 +283,7 @@ def process_apps(df_samp, model, df_ground, base_letter):
     for i in df_samp.index:
         print(f"{pd.to_datetime(time.time(), unit='s')}, Processing {i}")
         df_app = df_samp.loc[[i]]
-        row, explanation, pdf_bytes = process_one(df_app, model, df_ground, base_letter)
+        row, explanation, pdf_bytes = process_one(df_app, model, df_ground, base_latex)
         rows.append(row)
         explanations = f"{explanations}\n\n{explanation}"
         if pdf_bytes is not None:
@@ -300,7 +300,7 @@ def process_apps(df_samp, model, df_ground, base_letter):
 
 
 
-def process_one(df_app, model, df_ground, base_letter):
+def process_one(df_app, model, df_ground, base_latex):
     df_app.reset_index(inplace=True)
     app_name = df_app.loc[0,'application_id']
     df_app = load_and_process(df_app)
@@ -321,7 +321,7 @@ def process_one(df_app, model, df_ground, base_letter):
             row.extend(['None', np.nan, np.nan])
 
     if decision == 'Decline':
-        pdf_bytes = make_letter_pdf(base_letter=base_letter,
+        pdf_bytes = make_letter_pdf(base_latex=base_latex,
                                     app_name=app_name,
                                     dict_neg=dict_neg,
                                     dict_pos=dict_pos)

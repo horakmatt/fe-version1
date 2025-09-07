@@ -1,4 +1,8 @@
 *.ipynb
+*.log
+*.pdf
+*.aux
+*.gz
 *_bac*tex
 deploy_dev/
 old/

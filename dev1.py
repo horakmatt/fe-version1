@@ -83,7 +83,8 @@ if uploaded_file is not None:
     n_accept = len(df_res[df_res['decision'] == 'Accept'])
     n_review = len(df_res[df_res['decision'] == 'Review'])
     n_decline = len(df_res[df_res['decision'] == 'Decline'])
-    st.write(f"""We successflly processed {len(df_res)} applicants with the following decision distribution.\n
+
+    st.markdown(f"""We successflly processed {len(df_res)} applicants with the following decision distribution.\n
     * {n_accept} 'Accept' decisions\n
     * {n_review} 'Review' decisions\n
     * {n_decline} 'Decline' decisions\n""")

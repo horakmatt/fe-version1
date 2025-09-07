@@ -126,8 +126,8 @@ def get_shap_values(model, df_samp):
 
 def find_loc_in_data(df, col, x):
     n_less = df[df[col] <= x].shape[0]
-    frac_less = 1 - n_less / len(df)
-    return np.round(100*frac_less, 2)
+    frac_less = n_less / len(df)
+    return np.round(frac_less, 2)
 
 
 def get_reasons_for_lender(df_ground, shap_ser, df_samp):
@@ -272,12 +272,12 @@ def make_letter_pdf(base_latex, app_name, dict_neg, dict_pos):
 def process_apps(df_samp, model, df_ground, base_latex):
     # df_samp.reset_index(inplace=True)
     cols = ['application_id', 'decision', 'score',
-            'pos_field1', 'pos_value1', 'pos_pct1',
-            'pos_field2', 'pos_value2', 'pos_pct2',
-            'pos_field3', 'pos_value3', 'pos_pct3',
-            'neg_field1', 'neg_value1', 'neg_pct1',
-            'neg_field2', 'neg_value2', 'neg_pct2',
-            'neg_field3', 'neg_value3', 'neg_pct3']
+            'pos_field1', 'pos_value1', 'pos_percentile1',
+            'pos_field2', 'pos_value2', 'pos_percentile2',
+            'pos_field3', 'pos_value3', 'pos_percentile3',
+            'neg_field1', 'neg_value1', 'neg_percentile1',
+            'neg_field2', 'neg_value2', 'neg_percentile2',
+            'neg_field3', 'neg_value3', 'neg_percentile3']
     rows = []
     explanations = ''
     dict_zip = dict()

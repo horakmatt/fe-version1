@@ -79,6 +79,17 @@ if uploaded_file is not None:
                                                         base_latex=base_latex)
     summary_csv = df_res.to_csv(index=False)
 
+    st.subheader("Load Decisions and Downloads")
+    n_accept = len(df_res[df_res['decision'] == 'Accept'])
+    n_review = len(df_res[df_res['decision'] == 'Review'])
+    n_decline = len(df_res[df_res['decision'] == 'Decline'])
+    st.write(f"""We successflly processed {len(df_res)} applicants with the following decision distribution.\n
+    * {n_accept} 'Accept' decisions\n
+    * {n_review} 'Review' decisions\n
+    * {n_decline} 'Decline' decisions\n""")
+
+    st.write("Full summaries are available below.")
+
     st.download_button(
         label="Download decision summary csv file",
         data=summary_csv,

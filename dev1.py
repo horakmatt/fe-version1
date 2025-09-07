@@ -34,7 +34,8 @@ towards 'accept'.""")
 st.markdown("A recommended loan decision is made based on where the applicant's score falls with respect to the two \
 pre-determined thresholds, which are given below.  They were also determined based on recent historical loan \
 decisions.  The Decline, Review and Accept zones defined by those thresholds are:\n"
-"<center>DECLINE_ZONE < 0.2 < REVIEW_ZONE < 0.8 < ACCEPT_ZONE</center>")
+"<h1 style='text-align: center;'>DECLINE_ZONE < 0.2 < REVIEW_ZONE < 0.8 < ACCEPT_ZONE <\p>")
+# "<center>DECLINE_ZONE < 0.2 < REVIEW_ZONE < 0.8 < ACCEPT_ZONE</center>")
 
 st.markdown(f"Results are provided back in three formats.\n"
 "1.  A csv containing all of the decisions together with the top three fields for each application influencing the decision \

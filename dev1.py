@@ -89,6 +89,10 @@ if uploaded_file is not None:
     * {n_review} 'Review' decisions
     * {n_decline} 'Decline' decisions""")
 
+    st.markdown(" * abc"
+                "* def"
+                "* ghi")
+
     st.write("Full summaries are available below.")
 
     st.download_button(

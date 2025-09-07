@@ -31,9 +31,9 @@ for recent historical loan decisions that the model was 'trained' on.  The model
 closely as possible for new applications.  The score for each application is a number between 0 and 1, with higher numbers indicating a more favorable decision \
 towards 'accept'.""")
 
-st.markdown("A recommended loan decision is made based on where the applicant's score falls with respect to the two \
+st.markdown("<p>A recommended loan decision is made based on where the applicant's score falls with respect to the two \
 pre-determined thresholds, which are given below.  They were also determined based on recent historical loan \
-decisions.  The Decline, Review and Accept zones defined by those thresholds are:\n"
+decisions.  The Decline, Review and Accept zones defined by those thresholds are:<\p>"
 "<p style='text-align: center;'>DECLINE_ZONE < 0.2 < REVIEW_ZONE < 0.8 < ACCEPT_ZONE <\p>")
 # "<center>DECLINE_ZONE < 0.2 < REVIEW_ZONE < 0.8 < ACCEPT_ZONE</center>")
 

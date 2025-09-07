@@ -101,6 +101,9 @@ if uploaded_file is not None:
             mime="application/zip",
         )
 
+    else:
+        st.write(f"There are no declined applications in the uploaded data.")
+
 
 
 

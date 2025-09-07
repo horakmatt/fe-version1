@@ -28,28 +28,21 @@ csv file is available for download below.""")
 
 st.write(f"""The underlying model calculates a decision score for each applicant based on how the applicant's data fits into the distribution \
 for recent historical loan decisions that the model was 'trained' on.  The model attempts to mimic those decisions as \
-closely as possible for new applications.""")
-
-st.write(f"""The score for each application is a number between 0 and 1, with higher numbers indicating a more favorable decision \
+closely as possible for new applications.  The score for each application is a number between 0 and 1, with higher numbers indicating a more favorable decision \
 towards 'accept'.""")
 
 st.write(f"""A recommended loan decision is made based on where the applicant's score falls with respect to the two \
-pre-determined thresholds, which are given below.  They were also determined based on recent historical loan decisions.""")
-
-st.write(f"""
-Thresholds for decisions are:  decline/review threshold = 0.2, review/accept threshold = 0.8. 
-In terms of zones for the decline/review/accept decision:\n
+pre-determined thresholds, which are given below.  They were also determined based on recent historical loan \
+decisions.  The Decline, Review and Accept zones defined by those thresholds are:\n  
 DECLINE_ZONE < 0.2 < REVIEW_ZONE < 0.8 < ACCEPT_ZONE\n""")
 
-st.write(f"""
-Results are provided back in three formats.\n
-1.  A csv containing all of the decisions together with the top three fields for each application influencing the decision \
+st.markdown(f"Results are provided back in three formats.\n"
+"1.  A csv containing all of the decisions together with the top three fields for each application influencing the decision \
 in the positive direction (towards 'accept') and the top three fields for each application influencing the decision \
-in the negative direction (towards 'decline').
-2.  A text file containing further plain-English summaries of each decision, indended for use by the loan officer.
-3.  If there are any 'Decline' decisions, a zipped file containing a pdf file with justifications for each 'Decline' \
-decision is provided.  The pdfs is intended for the \
- applicants.""")
+in the negative direction (towards 'decline')."
+"2.  A text file containing further plain-English summaries of each decision, indended for use by the loan officer."
+"3.  If there are any 'Decline' decisions, a zipped file containing a pdf file with justifications for each 'Decline' \
+decision is provided.  The pdfs is intended for the applicants.""")
 
 st.write("The data you enter should be in csv form and have the same format as sample data that \
 can be downloaded below.")

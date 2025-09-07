@@ -1,6 +1,10 @@
 import pandas as pd
 import numpy as np
 from latex import build_pdf
+import io
+import zipfile
+import time
+
 
 from catboost import *
 from catboost import datasets
@@ -34,6 +38,31 @@ NUMS = ['intake_business_age_years',
  'label']
 
 DROPCOLS = ['application_id', 'application_date', 'reason_primary', 'reason_secondary', 'reason_tertiary', 'expected_decision', 'label']
+
+
+def create_in_memory_zip(file_data: dict) -> bytes:
+    """
+    Creates a zip archive in memory from a dictionary of filenames and data.
+
+    Args:
+        file_data: A dictionary where keys are filenames and values are the
+                   byte-like content of the files.
+
+    Returns:
+        A bytes object representing the complete zip archive.
+    """
+    # Create an in-memory binary stream
+    in_memory_zip = io.BytesIO()
+
+    # Open the stream as a zip file in write mode ('w')
+    # The 'with' statement ensures the file is properly closed
+    with zipfile.ZipFile(in_memory_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for filename, data in file_data.items():
+            # Use writestr() to add files to the archive from a string or bytes
+            zipf.writestr(filename, data)
+
+    # Return the bytes content of the in-memory buffer
+    return in_memory_zip.getvalue()
 
 def encode_label(s):
     if s == 'Accept':
@@ -208,21 +237,98 @@ def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name):
 
     return explanation
 
-def make_letter_pdf(base_letter, v1, v2, v3, v4, v5, v6, v7):
-    base_letter = base_letter.replace('RESERVEDSTRING1', str(v1))
-    base_letter = base_letter.replace('RESERVEDSTRING2', str(v2))
-    base_letter = base_letter.replace('RESERVEDSTRING3', str(v3))
-    base_letter = base_letter.replace('RESERVEDSTRING4', str(v4))
-    base_letter = base_letter.replace('RESERVEDSTRING5', str(v5))
-    base_letter = base_letter.replace('RESERVEDSTRING6', str(v6))
-    base_letter = base_letter.replace('RESERVEDSTRING7', str(v7))
+def make_letter_pdf(base_letter, app_name, dict_neg, dict_pos):
+    nf1 = dict_neg[0][0]
+    nv1 = dict_neg[0][1]
+    nf2 = dict_neg[1][0]
+    nv2 = dict_neg[1][1]
+    nf3 = dict_neg[2][0]
+    nv3 = dict_neg[2][1]
+    pf1 = dict_pos[0][0]
+    pv1 = dict_pos[0][1]
+
+    nf1 = nf1.replace('_', '\\_')
+    nf2 = nf2.replace('_', '\\_')
+    nf3 = nf3.replace('_', '\\_')
+    pf1 = pf1.replace('_', '\\_')
+
+
+    base_letter = base_letter.replace('RESERVEDAPPID1', str(app_name))
+    base_letter = base_letter.replace('RESERVEDNEGVALUE1', str(nv1))
+    base_letter = base_letter.replace('RESERVEDNEGVALUE2', str(nv2))
+    base_letter = base_letter.replace('RESERVEDNEGVALUE3', str(nv3))
+    base_letter = base_letter.replace('RESERVEDNEGFIELD1', str(nf1))
+    base_letter = base_letter.replace('RESERVEDNEGFIELD2', str(nf2))
+    base_letter = base_letter.replace('RESERVEDNEGFIELD3', str(nf3))
+    base_letter = base_letter.replace('RESERVEDPOSVALUE1', str(pv1))
+    base_letter = base_letter.replace('RESERVEDPOSFIELD1', str(pf1))
 
     pdf_object = build_pdf(base_letter)
     pdf_bytes = pdf_object.readb()
 
     return pdf_bytes
 
+def process_apps(df_samp, model, df_ground, base_letter):
+    # df_samp.reset_index(inplace=True)
+    cols = ['application_id', 'decision', 'score',
+            'pos_field1', 'pos_value1', 'pos_pct1',
+            'pos_field2', 'pos_value2', 'pos_pct2',
+            'pos_field3', 'pos_value3', 'pos_pct3',
+            'neg_field1', 'neg_value1', 'neg_pct1',
+            'neg_field2', 'neg_value2', 'neg_pct2',
+            'neg_field3', 'neg_value3', 'neg_pct3']
+    rows = []
+    explanations = ''
+    dict_zip = dict()
+    for i in df_samp.index:
+        print(f"{pd.to_datetime(time.time(), unit='s')}, Processing {i}")
+        df_app = df_samp.loc[[i]]
+        row, explanation, pdf_bytes = process_one(df_app, model, df_ground, base_letter)
+        rows.append(row)
+        explanations = f"{explanations}\n\n{explanation}"
+        if pdf_bytes is not None:
+            dict_zip[f"{row[0]}.pdf"] = pdf_bytes
+    df_res = pd.DataFrame(data=rows, columns=cols)
+    if len(dict_zip) > 0:
+        zip_bytes = create_in_memory_zip(dict_zip)
+    else:
+        zip_bytes = None
 
+
+    return df_res, explanations, zip_bytes
+
+
+
+
+def process_one(df_app, model, df_ground, base_letter):
+    df_app.reset_index(inplace=True)
+    app_name = df_app.loc[0,'application_id']
+    df_app = load_and_process(df_app)
+    decision, prob = eval_app(model, df_app)
+    shap_ser = get_shap_values(model, df_app)
+    dict_pos, dict_neg = get_reasons_for_lender(df_ground, shap_ser, df_samp=df_app)
+    explanation = make_explanation_string(decision, prob, dict_pos, dict_neg, app_name)
+    row = [app_name, decision, prob]
+    for i in range(3):
+        if i in dict_pos.keys():
+            row.extend(dict_pos[i])
+        else:
+            row.extend(['None', np.nan, np.nan])
+    for i in range(3):
+        if i in dict_neg.keys():
+            row.extend(dict_neg[i])
+        else:
+            row.extend(['None', np.nan, np.nan])
+
+    if decision == 'Decline':
+        pdf_bytes = make_letter_pdf(base_letter=base_letter,
+                                    app_name=app_name,
+                                    dict_neg=dict_neg,
+                                    dict_pos=dict_pos)
+    else:
+        pdf_bytes = None
+
+    return row, explanation, pdf_bytes
 
 
 

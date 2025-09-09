@@ -125,8 +125,10 @@ def get_shap_values(model, df_samp):
     return shap_ser
 
 def find_loc_in_data(df, col, x):
-    n_less = df[df[col] <= x].shape[0]
-    frac_less = n_less / len(df)
+    df1 = df[[col]].copy()
+    df1 = df1.fillna(value=0)
+    n_less = df1[df1[col] <= x].shape[0]
+    frac_less = n_less / len(df1)
     return np.round(frac_less, 2)
 
 
@@ -163,69 +165,69 @@ def get_reasons_for_lender(df_ground, shap_ser, df_samp):
             dict_neg[i] = (c, val, np.nan)
     return dict_pos, dict_neg
 
-def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name):
-    explanation = ''
+def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, appnum):
+    explanation = f"\n({appnum+1}) {app_name}\n"
     list_line_pos = []
     list_line_neg = []
     if decision == 'Accept':
-        explanation = f"The model recommends {decision.upper()} for {app_name} because the model score of {prob:.4f} is above the accept threshold of accept_thresh=0.8.\n\n"
+        explanation = f"{explanation}The model recommends {decision.upper()} for {app_name} because the model score of {prob:.4f} is above the accept threshold of accept_thresh=0.8.\n\n"
         l1 = "The top 3 positive contributing factors to this decision are following.\n"
         l2 = "The top 3 negative contributing factors to this decision are following  If needed, a review could be started focusing on these."
         for i in range(len(dict_pos)):
             v = dict_pos[i]
             if not np.isnan(v[2]):
-                newline = f"Attribute {v[0]} of this application has value {v[1]}, which is in the top {v[2]}% of the data."
+                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is in the {100*v[2]:.2f} percentile of the data."
             else:
-                newline = f"Attribute {v[0]} of this application has value {v[1]}, which is favorable in the ground truth data."
+                newline = f"\t {i}. Attribute {v[0]} of this application has value {v[1]}, which is favorable in the ground truth data."
             list_line_pos.append(newline)
 
         for i in range(len(dict_neg)):
             v = dict_neg[i]
             if not np.isnan(v[2]):
-                newline = f"Attribute {v[0]} of this application has value {v[1]}, which is in still the top {v[2]}% of the data."
+                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is in still in the {100*v[2]:.2f} percentile of the data."
             else:
-                newline = f"Attribute {v[0]} of this application has value {v[1]}, which is not sufficiently unfavorable to influence a negative decision."
+                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is not sufficiently unfavorable to influence a negative decision."
             list_line_neg.append(newline)
 
     elif decision == 'Decline':
-        explanation = f"The model recommends {decision.upper()} for {app_name} because the model score of {prob:.4f} is below the decline threshold of decline_thresh = 0.2.\n\n"
+        explanation = f"{explanation}The model recommends {decision.upper()} for {app_name} because the model score of {prob:.4f} is below the decline threshold of decline_thresh = 0.2.\n\n"
         l1 = "The top 3 positive contributing factors to this decision are following.\n"
         l2 = "The top 3 negative contributing factors to this decision are following.  If needed, a review could be started focusing on these."
         for i in range(len(dict_pos)):
             v = dict_pos[i]
             if not np.isnan(v[2]):
-                newline = f"Attribute {v[0]} of this application has value {v[1]}, which is in the top {v[2]}% of the data."
+                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is in the {100*v[2]:.2f} percentile of the data."
             else:
-                newline = f"Attribute {v[0]} of this application has value {v[1]}, which is not sufficiently favorable in the ground truth data to influence a positive decision."
+                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is not sufficiently favorable in the ground truth data to influence a positive decision."
             list_line_pos.append(newline)
 
         for i in range(len(dict_neg)):
             v = dict_neg[i]
             if not np.isnan(v[2]):
-                newline = f"Attribute {v[0]} of this application has value {v[1]}, which is in only the top {v[2]}% of the data."
+                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is in only the {100*v[2]:.2f} percentile of the data."
             else:
-                newline = f"Attribute {v[0]} of this application has value {v[1]}, which is unfavorable in the ground truth data."
+                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is unfavorable in the ground truth data."
             list_line_neg.append(newline)
 
     if decision == 'Review':
-        explanation = f"The model recommends {decision.upper()} for {app_name} because the model score of {prob:.4f} is between the decline and accept thresholds of decline_thresh=0.2 and accept_thresh=0.8."
+        explanation = f"{explanation}The model recommends {decision.upper()} for {app_name} because the model score of {prob:.4f} is between the decline and accept thresholds of decline_thresh=0.2 and accept_thresh=0.8."
         explanation = f"{explanation}  Following are both positive and negative factors of the application that the model found.  A review could start by looking into these.\n\n"
         l1 = "The top 3 positive contributing factors to this decision are following.\n"
         l2 = "The top 3 negative contributing factors to this decision are following."
         for i in range(len(dict_pos)):
             v = dict_pos[i]
             if not np.isnan(v[2]):
-                newline = f"Attribute {v[0]} of this application has value {v[1]}, which is in the top {v[2]}% of the data."
+                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is in the {100*v[2]:.2f} percentile of the data."
             else:
-                newline = f"Attribute {v[0]} of this application has value {v[1]}."
+                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}."
             list_line_pos.append(newline)
 
         for i in range(len(dict_neg)):
             v = dict_neg[i]
             if not np.isnan(v[2]):
-                newline = f"Attribute {v[0]} of this application has value {v[1]}, which is in the top {v[2]}% of the data."
+                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is in the {100*v[2]:.2f} percentile of the data."
             else:
-                newline = f"Attribute {v[0]} of this application has value {v[1]}."
+                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}."
             list_line_neg.append(newline)
 
     explanation = f"{explanation}{l1}"
@@ -235,6 +237,7 @@ def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name):
     explanation = explanation + f"{l2}\n"
     for line in list_line_neg:
         explanation += f"{line}\n"
+    explanation = explanation + '\n'
 
     return explanation
 
@@ -284,7 +287,7 @@ def process_apps(df_samp, model, df_ground, base_latex):
     for i in df_samp.index:
         print(f"{pd.to_datetime(time.time(), unit='s')}, Processing {i}")
         df_app = df_samp.loc[[i]]
-        row, explanation, pdf_bytes = process_one(df_app, model, df_ground, base_latex)
+        row, explanation, pdf_bytes = process_one(df_app, model, df_ground, base_latex, i)
         rows.append(row)
         explanations = f"{explanations}\n\n{explanation}"
         if pdf_bytes is not None:
@@ -301,14 +304,14 @@ def process_apps(df_samp, model, df_ground, base_latex):
 
 
 
-def process_one(df_app, model, df_ground, base_latex):
+def process_one(df_app, model, df_ground, base_latex, i=0):
     df_app.reset_index(inplace=True)
     app_name = df_app.loc[0,'application_id']
     df_app = load_and_process(df_app)
     decision, prob = eval_app(model, df_app)
     shap_ser = get_shap_values(model, df_app)
     dict_pos, dict_neg = get_reasons_for_lender(df_ground, shap_ser, df_samp=df_app)
-    explanation = make_explanation_string(decision, prob, dict_pos, dict_neg, app_name)
+    explanation = make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, i)
     row = [app_name, decision, prob]
     for i in range(3):
         if i in dict_pos.keys():
@@ -330,6 +333,18 @@ def process_one(df_app, model, df_ground, base_latex):
         pdf_bytes = None
 
     return row, explanation, pdf_bytes
+
+def score_field_list(shap_ser, field_list):
+    """
+    Assigns a score to the list of fields in field_list corresponding to how much they contributed to a pos or neg decision.
+    :param shap_ser:
+    :param field_list:
+    :param decision_type:
+    :return:
+    """
+    shap_ser = shap_ser[field_list].copy()
+    return shap_ser.sum()
+
 
 
 

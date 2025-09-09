@@ -176,17 +176,17 @@ def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, appnum
         for i in range(len(dict_pos)):
             v = dict_pos[i]
             if not np.isnan(v[2]):
-                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is in the {100*v[2]:.2f} percentile of the data."
+                newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}, which is in the {100*v[2]:.2f} percentile of the data."
             else:
-                newline = f"\t {i}. Attribute {v[0]} of this application has value {v[1]}, which is favorable in the ground truth data."
+                newline = f"\t {i+1}. Attribute {v[0]} of this application has value {v[1]}, which is favorable in the ground truth data."
             list_line_pos.append(newline)
 
         for i in range(len(dict_neg)):
             v = dict_neg[i]
             if not np.isnan(v[2]):
-                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is in still in the {100*v[2]:.2f} percentile of the data."
+                newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}, which is in still in the {100*v[2]:.2f} percentile of the data."
             else:
-                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is not sufficiently unfavorable to influence a negative decision."
+                newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}, which is not sufficiently unfavorable to influence a negative decision."
             list_line_neg.append(newline)
 
     elif decision == 'Decline':
@@ -196,17 +196,17 @@ def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, appnum
         for i in range(len(dict_pos)):
             v = dict_pos[i]
             if not np.isnan(v[2]):
-                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is in the {100*v[2]:.2f} percentile of the data."
+                newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}, which is in the {100*v[2]:.2f} percentile of the data."
             else:
-                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is not sufficiently favorable in the ground truth data to influence a positive decision."
+                newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}, which is not sufficiently favorable in the ground truth data to influence a positive decision."
             list_line_pos.append(newline)
 
         for i in range(len(dict_neg)):
             v = dict_neg[i]
             if not np.isnan(v[2]):
-                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is in only the {100*v[2]:.2f} percentile of the data."
+                newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}, which is in only the {100*v[2]:.2f} percentile of the data."
             else:
-                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is unfavorable in the ground truth data."
+                newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}, which is unfavorable in the ground truth data."
             list_line_neg.append(newline)
 
     if decision == 'Review':
@@ -217,17 +217,17 @@ def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, appnum
         for i in range(len(dict_pos)):
             v = dict_pos[i]
             if not np.isnan(v[2]):
-                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is in the {100*v[2]:.2f} percentile of the data."
+                newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}, which is in the {100*v[2]:.2f} percentile of the data."
             else:
-                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}."
+                newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}."
             list_line_pos.append(newline)
 
         for i in range(len(dict_neg)):
             v = dict_neg[i]
             if not np.isnan(v[2]):
-                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}, which is in the {100*v[2]:.2f} percentile of the data."
+                newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}, which is in the {100*v[2]:.2f} percentile of the data."
             else:
-                newline = f"\t {i}.  Attribute {v[0]} of this application has value {v[1]}."
+                newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}."
             list_line_neg.append(newline)
 
     explanation = f"{explanation}{l1}"

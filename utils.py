@@ -12,6 +12,10 @@ from catboost import datasets
 import shap
 from numba.core.types import np_uint64
 
+THRESH_DECLINE = 0.2
+THRESH_ACCEPT = 0.8
+THRESH_TRIAGE_DECLINE = 0.5
+
 COLUMNS = ['intake_intake_channel', 'intake_new_customer', 'intake_lender_segment',
        'intake_region', 'intake_sector', 'intake_business_age_years',
        'intake_annual_revenue_gbp', 'intake_requested_loan_gbp',
@@ -37,6 +41,25 @@ NUMS = ['intake_business_age_years',
  'enrich_ltv',
  'enrich_risk_score',
  'enrich_triage_priority',
+ 'label']
+
+COLUMNS_TRIAGE = ['intake_intake_channel', 'intake_new_customer', 'intake_lender_segment',
+       'intake_region', 'intake_sector', 'intake_business_age_years',
+       'intake_annual_revenue_gbp', 'intake_requested_loan_gbp',
+       'intake_requested_term_months', 'intake_loan_purpose',
+       'intake_personal_guarantee', 'intake_collateral_type',
+       'intake_bureau_score', 'intake_ccj_count', 'intake_default_history',
+       'intake_kyc_pass', 'intake_aml_risk', 'intake_pep_hit',
+       'intake_sanctions_hit', 'intake_doc_completeness']
+CAT_FEATURES_TRIAGE = [0, 1, 2, 3, 4, 9, 10, 11, 14, 15, 16, 17, 18]
+
+NUMS_TRIAGE = ['intake_business_age_years',
+ 'intake_annual_revenue_gbp',
+ 'intake_requested_loan_gbp',
+ 'intake_requested_term_months',
+ 'intake_bureau_score',
+ 'intake_ccj_count',
+ 'intake_doc_completeness',
  'label']
 
 DROPCOLS = ['application_id', 'application_date', 'reason_primary', 'reason_secondary', 'reason_tertiary', 'expected_decision', 'label']
@@ -82,11 +105,21 @@ def encode_label(s):
         return 0.0
     return 1/2
 
+def encode_label_triage(s):
+    if s == 'Accept':
+        return 1.0
+    return 0.0
 
-def load_and_process(application):
-    columns = COLUMNS
-    cat_features = CAT_FEATURES
-    nums = NUMS
+
+def load_and_process(application, tf = 'full'):
+    if tf == 'full':
+        columns = COLUMNS
+        cat_features = CAT_FEATURES
+        nums = NUMS
+    else:
+        columns = COLUMNS_TRIAGE
+        cat_features = CAT_FEATURES_TRIAGE
+        nums = NUMS_TRIAGE
     dropcols = DROPCOLS
 
     if isinstance(application, pd.DataFrame):
@@ -115,23 +148,53 @@ def classify(x, thresh_r, thresh_a):
         return 1/2
     return 1
 
-def make_decision(prob, thresh_decline = 0.2, thresh_accept = 0.8):
-    if prob < thresh_decline:
-        return 'Decline'
-    elif prob < thresh_accept:
-        return 'Review'
-    return 'Accept'
 
-def eval_app(model, df_samp):
+def classify_traige(x, thresh_r):
+    if x < thresh_r:
+        return 0
+    return 1
+
+def make_decision(prob, thresh_decline = None, thresh_accept = None, thresh_triage_decline = None, tf = 'full'):
+    if not thresh_decline:
+        thresh_decline = THRESH_DECLINE
+    if not thresh_accept:
+        thresh_accept = THRESH_ACCEPT
+    if not thresh_triage_decline:
+        thresh_triage_decline = THRESH_TRIAGE_DECLINE
+
+    if tf == 'full':
+        if prob < thresh_decline:
+            return 'Decline'
+        elif prob < thresh_accept:
+            return 'Review'
+        return 'Accept'
+    else:
+        if prob < thresh_triage_decline:
+            return 'Decline'
+        else:
+            return 'Do Not Decline'
+
+def eval_app(model, df_samp, tf = 'full'):
+    """
+
+    :param model:
+    :param df_samp:
+    :param tf:  string telling which model to use.  'full' = use full model, 'triage' = use triage model.
+    :return:
+    """
     samp = df_samp.iloc[0]
     prob = model.predict(data=samp)
-    decision = make_decision(prob)
+    decision = make_decision(prob, tf=tf)
     return decision, prob
 
-def get_shap_values(model, df_samp):
+def get_shap_values(model, df_samp, tf = 'full'):
+    if tf == 'full':
+        columns = COLUMNS
+    else:
+        columns = COLUMNS_TRIAGE
     shap_explainer = shap.TreeExplainer(model)
     shap_values = shap_explainer(df_samp)
-    shap_ser = pd.Series(index=COLUMNS, data=shap_values.values.reshape(-1,))
+    shap_ser = pd.Series(index=columns, data=shap_values.values.reshape(-1,))
     return shap_ser
 
 def find_loc_in_data(df, col, x):
@@ -178,7 +241,7 @@ def get_reasons_for_lender(df_ground, shap_ser, df_samp):
     dict_neg = promote_hard_stops(dict_neg_orig=dict_neg)
     return dict_pos, dict_neg
 
-def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, appnum = None):
+def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, appnum = None, tf = 'full'):
     """
 
     :param decision:
@@ -197,7 +260,7 @@ def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, appnum
     list_line_pos = []
     list_line_neg = []
     if decision == 'Accept':
-        explanation = f"{explanation}The model recommends {decision.upper()} for {app_name} because the model score of {prob:.4f} is above the accept threshold of accept_thresh=0.8.\n\n"
+        explanation = f"{explanation}The model recommends {decision.upper()} for {app_name} because the model score of {prob:.4f} is above the accept threshold of accept_thresh = {THRESH_ACCEPT}.\n\n"
         l1 = "The top 3 positive contributing factors to this decision are following.\n"
         l2 = "The top 3 negative contributing factors to this decision are following  If needed, a review could be started focusing on these."
         for i in range(len(dict_pos)):
@@ -217,7 +280,10 @@ def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, appnum
             list_line_neg.append(newline)
 
     elif decision == 'Decline':
-        explanation = f"{explanation}The model recommends {decision.upper()} for {app_name} because the model score of {prob:.4f} is below the decline threshold of decline_thresh = 0.2.\n\n"
+        if tf == 'full':
+            explanation = f"{explanation}The model recommends {decision.upper()} for {app_name} because the model score of {prob:.4f} is below the decline threshold of decline_thresh = {THRESH_DECLINE}.\n\n"
+        else:
+            explanation = f"{explanation}The model recommends {decision.upper()} for {app_name} because the model score of {prob:.4f} is below the triage 'do not decline' threshold of triage_decline_thresh = {THRESH_TRIAGE_DECLINE}.\n\n"
         l1 = "The top 3 positive contributing factors to this decision are following.\n"
         l2 = "The top 3 negative contributing factors to this decision are following.  If needed, a review could be started focusing on these."
         for i in range(len(dict_pos)):
@@ -239,7 +305,7 @@ def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, appnum
             list_line_neg.append(newline)
 
     if decision == 'Review':
-        explanation = f"{explanation}The model recommends {decision.upper()} for {app_name} because the model score of {prob:.4f} is between the decline and accept thresholds of decline_thresh=0.2 and accept_thresh=0.8."
+        explanation = f"{explanation}The model recommends {decision.upper()} for {app_name} because the model score of {prob:.4f} is between the decline and accept thresholds of decline_thresh = {THRESH_DECLINE} and accept_thresh = {THRESH_ACCEPT}."
         explanation = f"{explanation}  Following are both positive and negative factors of the application that the model found.  A review could start by looking into these.\n\n"
         l1 = "The top 3 positive contributing factors to this decision are following.\n"
         l2 = "The top 3 negative contributing factors to this decision are following."
@@ -258,6 +324,29 @@ def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, appnum
             else:
                 newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}."
             list_line_neg.append(newline)
+
+    if decision == 'Do Not Decline':
+        explanation = f"{explanation}The model recommends {decision.upper()} for {app_name} because the model score of {prob:.4f} is above the triage 'do not decline' threshold of triage_decline_thresh = {THRESH_TRIAGE_DECLINE}."
+        explanation = f"{explanation}  Following are both positive and negative factors of the application that the model found.  A review could start by looking into these.\n\n"
+        l1 = "The top 3 positive contributing factors to this decision are following.\n"
+        l2 = "The top 3 negative contributing factors to this decision are following."
+        for i in range(len(dict_pos)):
+            v = dict_pos[i]
+            if not np.isnan(v[2]):
+                newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}, which is in the {100*v[2]:.2f} percentile of the data."
+            else:
+                newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}."
+            list_line_pos.append(newline)
+
+        for i in range(len(dict_neg)):
+            v = dict_neg[i]
+            if not np.isnan(v[2]):
+                newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}, which is in the {100*v[2]:.2f} percentile of the data."
+            else:
+                newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}."
+            list_line_neg.append(newline)
+
+
 
     explanation = f"{explanation}{l1}"
     for line in list_line_pos:
@@ -294,7 +383,7 @@ def make_letter_pdf(base_latex, app_name, p1, n1, n2, n3):
 
     return pdf_bytes
 
-def process_apps(df_samp, model, df_ground, dict_r2f, dict_r2explain, dict_r2explain_positive, base_latex):
+def process_apps(df_samp, model, df_ground, dict_r2f, dict_r2explain, dict_r2explain_positive, base_latex, tf = 'full'):
     """
     Perform full processing of the applications
     :param df_samp: dataframe of the applications
@@ -318,9 +407,9 @@ def process_apps(df_samp, model, df_ground, dict_r2f, dict_r2explain, dict_r2exp
     rows = []
     explanations = ''
     dict_zip = dict()
-    for i in df_samp.index:
+    for appnum in df_samp.index:
         # print(f"{pd.to_datetime(time.time(), unit='s')}, Processing {i}")
-        df_app = df_samp.loc[[i]]
+        df_app = df_samp.loc[[appnum]]
         row, explanation, pdf_bytes = process_one(df_app=df_app,
                                                   model=model,
                                                   df_ground=df_ground,
@@ -328,7 +417,8 @@ def process_apps(df_samp, model, df_ground, dict_r2f, dict_r2explain, dict_r2exp
                                                   dict_r2explain=dict_r2explain,
                                                   dict_r2explain_positive=dict_r2explain_positive,
                                                   base_latex=base_latex,
-                                                  i=i)
+                                                  appnum=appnum,
+                                                  tf=tf)
         rows.append(row)
         explanations = f"{explanations}\n\n{explanation}"
         if pdf_bytes is not None:
@@ -345,27 +435,29 @@ def process_apps(df_samp, model, df_ground, dict_r2f, dict_r2explain, dict_r2exp
 
 
 
-def process_one(df_app, model, df_ground, base_latex, dict_r2f, dict_r2explain, dict_r2explain_positive, i=0):
+def process_one(df_app, model, df_ground, base_latex, dict_r2f, dict_r2explain, dict_r2explain_positive, appnum = 0, tf = 'full'):
+    # print(f"PROCESSING WITH TF = {tf}")
     df_app.reset_index(inplace=True)
     app_name = df_app.loc[0,'application_id']
-    df_app = load_and_process(df_app)
-    decision, prob = eval_app(model, df_app)
-    shap_ser = get_shap_values(model, df_app)
+    df_app = load_and_process(df_app, tf=tf)
+    # print(df_app.shape)
+    decision, prob = eval_app(model, df_app, tf=tf)
+    shap_ser = get_shap_values(model, df_app, tf=tf)
     dict_pos, dict_neg = get_reasons_for_lender(df_ground, shap_ser, df_samp=df_app)
-    explanation = make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, i)
+    explanation = make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, appnum=appnum, tf=tf)
     if decision.upper() == 'DECLINE':
         # print(f"\n{app_name}")
         p1, n1, n2, n3 = get_reasons_for_applicant(shap_ser, dict_r2f, dict_r2explain, dict_r2explain_positive, how='mean')
         # print(f"{p1}\n{n1}\n{n2}\n{n3}")
     row = [app_name, decision, prob]
-    for i in range(3):
-        if i in dict_pos.keys():
-            row.extend(dict_pos[i])
+    for j in range(3):
+        if j in dict_pos.keys():
+            row.extend(dict_pos[j])
         else:
             row.extend(['None', np.nan, np.nan])
-    for i in range(3):
-        if i in dict_neg.keys():
-            row.extend(dict_neg[i])
+    for j in range(3):
+        if j in dict_neg.keys():
+            row.extend(dict_neg[j])
         else:
             row.extend(['None', np.nan, np.nan])
 
@@ -389,13 +481,16 @@ def score_field_list(shap_ser, field_list, how = 'sum'):
     :param field_list: list of field names with respect to which we want the aggregate score.
     :return: sum or average of the shaplety values for variables in the field_list
     """
-    shap_ser = shap_ser[field_list].copy()
+    field_list_present = [f for f in field_list if f in shap_ser.index]
+    shap_ser_fields = shap_ser[field_list_present].copy()
+    if len(shap_ser_fields) == 0:
+        return 0
     if how == 'sum':
-        return shap_ser.sum()
+        return shap_ser_fields.sum()
     try:
-        return shap_ser.aggregate(how)
+        return shap_ser_fields.aggregate(how)
     except:
-        return shap_ser.mean()
+        return shap_ser_fields.mean()
 
 
 def score_reasons(shap_ser, dict_r2f, how='mean'):

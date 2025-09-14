@@ -77,9 +77,8 @@ while len(triage_or_full) == 1:
         ('', 'Triage model', 'Full model')
     )
 if len(triage_or_full) > 1:
-    tf = triage_or_full.split(' ')[0].lower()
     st.write(f"Thank you.  Proceeding with the {triage_or_full.lower()}.")
-    if tf == 'full':
+    if triage_or_full == 'Full model':
         model.load_model('model_files/reg1.cbm')
     else:
         model.load_model('model_files/triage_reg1.cbm')
@@ -108,18 +107,11 @@ if len(triage_or_full) > 1:
         n_accept = len(df_res[df_res['decision'] == 'Accept'])
         n_review = len(df_res[df_res['decision'] == 'Review'])
         n_decline = len(df_res[df_res['decision'] == 'Decline'])
-        n_not_decline = len(df_res[df_res['decision'] == 'Do Not Decline'])
 
-
-        if tf == 'full':
-            st.markdown(f"We successflly processed {len(df_res)} applicants with the following decision distribution.\n"
-            f"* {n_accept} 'Accept' decisions\n"
-            f"* {n_review} 'Review' decisions\n"
-            f"* {n_decline} 'Decline' decisions")
-        else:
-            st.markdown(f"We successflly processed {len(df_res)} applicants with the following decision distribution.\n"
-            f"* {n_not_decline} 'Do Not Triage Decline' decisions\n"
-            f"* {n_decline} 'Triage Decline' decisions")
+        st.markdown(f"We successflly processed {len(df_res)} applicants with the following decision distribution.\n"
+        f"* {n_accept} 'Accept' decisions\n"
+        f"* {n_review} 'Review' decisions\n"
+        f"* {n_decline} 'Decline' decisions")
 
         # st.markdown(" * abc\n"
         #             "* def\n"

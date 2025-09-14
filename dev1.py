@@ -76,74 +76,72 @@ while len(triage_or_full) == 1:
 if len(triage_or_full) > 1:
     st.write(f"Thank you.  Proceeding with the {triage_or_full.lower()}.")
 
-st.write("Please upload the csv file containing the loan applications to be evaluated in csv format following the sample above.")
-uploaded_file = st.file_uploader("", type=["csv"])
+    st.write("Please upload the csv file containing the loan applications to be evaluated in csv format following the sample above.")
+    uploaded_file = st.file_uploader("", type=["csv"])
 
-if uploaded_file is not None and len(triage_or_full) > 1:
-    st.write(f"Thank you.  Proceeding with the {triage_or_full.lower()}.")
-    st.write(f"LENGTH OF TRAIGE_OR_FULL {len(triage_or_full)}")
-    # try:
-        # Read the uploaded CSV file into a pandas DataFrame
-    df_samp = pd.read_csv(uploaded_file)
-    df_samp.reset_index(inplace=True)
-    app_name = df_samp.loc[0,'application_id']
-    st.write(f"We received and will evaluate the application data for {len(df_samp)} applicants.")
+    if uploaded_file is not None:
+        # try:
+            # Read the uploaded CSV file into a pandas DataFrame
+        df_samp = pd.read_csv(uploaded_file)
+        df_samp.reset_index(inplace=True)
+        app_name = df_samp.loc[0,'application_id']
+        st.write(f"We received and will evaluate the application data for {len(df_samp)} applicants.")
 
-    df_res, explanations, zip_bytes = utils.process_apps(df_samp=df_samp,
-                                                        model=model,
-                                                        df_ground=df_ground,
-                                                         dict_r2f=dict_r2f,
-                                                         dict_r2explain=dict_r2explain,
-                                                         dict_r2explain_positive=dict_r2explain_positive,
-                                                        base_latex=base_latex)
-    summary_csv = df_res.to_csv(index=False)
+        df_res, explanations, zip_bytes = utils.process_apps(df_samp=df_samp,
+                                                            model=model,
+                                                            df_ground=df_ground,
+                                                             dict_r2f=dict_r2f,
+                                                             dict_r2explain=dict_r2explain,
+                                                             dict_r2explain_positive=dict_r2explain_positive,
+                                                            base_latex=base_latex)
+        summary_csv = df_res.to_csv(index=False)
 
-    st.subheader("Loan Decisions and Downloads")
-    n_accept = len(df_res[df_res['decision'] == 'Accept'])
-    n_review = len(df_res[df_res['decision'] == 'Review'])
-    n_decline = len(df_res[df_res['decision'] == 'Decline'])
+        st.subheader("Loan Decisions and Downloads")
+        n_accept = len(df_res[df_res['decision'] == 'Accept'])
+        n_review = len(df_res[df_res['decision'] == 'Review'])
+        n_decline = len(df_res[df_res['decision'] == 'Decline'])
 
-    st.markdown(f"We successflly processed {len(df_res)} applicants with the following decision distribution.\n"
-    f"* {n_accept} 'Accept' decisions\n"
-    f"* {n_review} 'Review' decisions\n"
-    f"* {n_decline} 'Decline' decisions")
+        st.markdown(f"We successflly processed {len(df_res)} applicants with the following decision distribution.\n"
+        f"* {n_accept} 'Accept' decisions\n"
+        f"* {n_review} 'Review' decisions\n"
+        f"* {n_decline} 'Decline' decisions")
 
-    # st.markdown(" * abc\n"
-    #             "* def\n"
-    #             "* ghi")
+        # st.markdown(" * abc\n"
+        #             "* def\n"
+        #             "* ghi")
 
-    st.write("Full summaries are available below.")
+        st.write("Full summaries are available below.")
 
-    st.download_button(
-        label="Download decision summary csv file",
-        data=summary_csv,
-        file_name="summary.csv",
-        mime="text/csv",
-    )
-
-    st.download_button(
-        label="Download decision reasons",
-        data=explanations,
-        file_name="decision_summaries.txt",
-        mime="text/csv",
-    )
-
-
-    if zip_bytes is not None:
         st.download_button(
-            label=f"Download .zip file containing customer decline documents.",
-            data=zip_bytes,
-            file_name=f"decline_documents.zip",
-            mime="application/zip",
+            label="Download decision summary csv file",
+            data=summary_csv,
+            file_name="summary.csv",
+            mime="text/csv",
         )
 
+        st.download_button(
+            label="Download decision reasons",
+            data=explanations,
+            file_name="decision_summaries.txt",
+            mime="text/csv",
+        )
+
+
+        if zip_bytes is not None:
+            st.download_button(
+                label=f"Download .zip file containing customer decline documents.",
+                data=zip_bytes,
+                file_name=f"decline_documents.zip",
+                mime="application/zip",
+            )
+
+        else:
+            st.write(f"There are no declined applications in the uploaded data.")
+
+
+
+
+        # except Exception as e:
+        #     st.error(f"Error reading CSV file: {e}")
     else:
-        st.write(f"There are no declined applications in the uploaded data.")
-
-
-
-
-    # except Exception as e:
-    #     st.error(f"Error reading CSV file: {e}")
-else:
-    st.info("Please upload a CSV file to get started.")
+        st.info("Please upload a CSV file to get started.")

@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import json
 import numpy as np
 from latex import build_pdf
 import io
@@ -10,22 +9,12 @@ from catboost import datasets
 import shap
 
 import utils
-from nbs.deploy_dev.score_pre_written_reasons2 import dict_r2explain_positive
 
 df_ground = pd.read_csv('data/train.csv')
 df_sample_data = pd.read_csv('data/sample_data.csv')
 sample_data = df_sample_data.to_csv(index=False) #Create the data sample for users to dlwnload.
 with open('latex_data/document_template.tex', 'r') as f:
     base_latex = f.read()
-
-with open('data/dict_r2f.json', 'r') as f:
-    dict_r2f = json.load(f)
-
-with open('data/dict_f2r.json', 'r') as f:
-    dict_f2r = json.load(f)
-
-with open('data/dict_r2explain.json', 'r') as f:
-    dict_r2explain = json.load(f)
 
 
 model = CatBoostRegressor()
@@ -89,9 +78,6 @@ if uploaded_file is not None:
     df_res, explanations, zip_bytes = utils.process_apps(df_samp=df_samp,
                                                         model=model,
                                                         df_ground=df_ground,
-                                                         dict_r2f=dict_r2f,
-                                                         dict_r2explain=dict_r2explain,
-                                                         dict_r2explain_positive=dict_r2explain_positive,
                                                         base_latex=base_latex)
     summary_csv = df_res.to_csv(index=False)
 

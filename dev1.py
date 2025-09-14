@@ -67,13 +67,13 @@ st.download_button(
 
 st.subheader("Upload Loan application")
 
-triage_or_full = None
-while triage_or_full is None:
+triage_or_full = ''
+while len(triage_or_full) == 0:
     triage_or_full = st.selectbox(
         'Do you want to run the triage model or full model?',
         ('', 'Triage model', 'Full model')
     )
-if not triage_or_full is None:
+if len(triage_or_full) > 0:
     st.write(f"Thank you.  Proceeding with the {triage_or_full.lower()}.")
 
 st.write("Please upload the csv file containing the loan applications to be evaluated in csv format following the sample above.")

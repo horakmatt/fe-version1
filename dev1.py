@@ -26,6 +26,9 @@ with open('data/dict_f2r.json', 'r') as f:
 with open('data/dict_r2explain.json', 'r') as f:
     dict_r2explain = json.load(f)
 
+with open('data/dict_r2explain_positive.json', 'r') as f:
+    dict_r2explain_positive = json.load(f)
+
 
 model = CatBoostRegressor()
 model.load_model('model_files/reg1.cbm')

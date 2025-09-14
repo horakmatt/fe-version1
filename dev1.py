@@ -74,6 +74,7 @@ while len(triage_or_full) == 1:
         ('', 'Triage model', 'Full model')
     )
 if len(triage_or_full) > 1:
+    st.write(f"LENGTH OF TRAIGE_OR_FULL {len(triage_or_full)}")
     st.write(f"Thank you.  Proceeding with the {triage_or_full.lower()}.")
 
 st.write("Please upload the csv file containing the loan applications to be evaluated in csv format following the sample above.")

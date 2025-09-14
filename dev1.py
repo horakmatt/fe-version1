@@ -73,6 +73,7 @@ while triage_or_full is None:
         'Do you want to run the triage model or full model?',
         ('', 'Triage model', 'Full model')
     )
+if not triage_or_full is None:
     st.write(f"Thank you.  Proceeding with the {triage_or_full.lower()}.")
 
 st.write("Please upload the csv file containing the loan applications to be evaluated in csv format following the sample above.")

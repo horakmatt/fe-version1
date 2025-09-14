@@ -10,6 +10,7 @@ import time
 from catboost import *
 from catboost import datasets
 import shap
+from numba.core.types import np_uint64
 
 COLUMNS = ['intake_intake_channel', 'intake_new_customer', 'intake_lender_segment',
        'intake_region', 'intake_sector', 'intake_business_age_years',
@@ -40,6 +41,15 @@ NUMS = ['intake_business_age_years',
 
 DROPCOLS = ['application_id', 'application_date', 'reason_primary', 'reason_secondary', 'reason_tertiary', 'expected_decision', 'label']
 
+DUPLICATE_REASONS = ['REVIEW_SECURITY',
+                     'REVIEW_CREDIT_HISTORY',
+                     'REVIEW_AFFORDABILITY',
+                     'KYC_FAIL',
+                     'REVIEW_COMPLIANCE']
+
+HARD_STOPS = ['intake_kyc_pass',
+              'intake_pep_hit',
+              'intake_sanctions_hit']
 
 def create_in_memory_zip(file_data: dict) -> bytes:
     """
@@ -134,23 +144,26 @@ def find_loc_in_data(df, col, x):
 
 def get_reasons_for_lender(df_ground, shap_ser, df_samp):
     ser_samp = df_samp.iloc[0]
-    shap_pos = shap_ser[shap_ser>0].copy()
-    npos = min(3, len(shap_pos))
-    shap_pos.sort_values(ascending=False, inplace=True)
-    pos = shap_pos.index[:npos]
-
     shap_neg = shap_ser[shap_ser<0].copy()
     nneg = min(3, len(shap_neg))
     shap_neg.sort_values(ascending=True, inplace=True)
     neg = shap_neg.index[:nneg]
+
+    shap_pos = shap_ser[shap_ser>0].copy()
+    npos = min(3, len(shap_pos))
+    if npos > 0:
+        shap_pos.sort_values(ascending=False, inplace=True)
+        pos = shap_pos.index[:npos]
+    else: #If there are no positive reasons, take the least negative one.
+        pos = shap_neg.index[-1:]
 
     dict_pos = dict()
     for i,c in enumerate(pos):
         sv = shap_pos[c]
         val = ser_samp[c]
         if c in NUMS:
-            position = find_loc_in_data(df_ground, c, val)
-            dict_pos[i] = (c, val, position)
+            pctile = find_loc_in_data(df_ground, c, val)
+            dict_pos[i] = (c, val, pctile)
         else:
             dict_pos[i] = (c, sv, np.nan)
     dict_neg = dict()
@@ -158,15 +171,29 @@ def get_reasons_for_lender(df_ground, shap_ser, df_samp):
         sv = shap_neg[c]
         val = ser_samp[c]
         if c in NUMS:
-            position = find_loc_in_data(df_ground, c, val)
-            position = position
-            dict_neg[i] = (c, val, position)
+            pctile = find_loc_in_data(df_ground, c, val)
+            dict_neg[i] = (c, val, pctile)
         else:
             dict_neg[i] = (c, val, np.nan)
+    dict_neg = promote_hard_stops(dict_neg_orig=dict_neg)
     return dict_pos, dict_neg
 
-def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, appnum):
-    explanation = f"\n({appnum+1}) {app_name}\n"
+def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, appnum = None):
+    """
+
+    :param decision:
+    :param prob:
+    :param dict_pos:
+    :param dict_neg:
+    :param app_name:
+    :param appnum: Optional number to be used in the text file to the lender to identify the row in the input data
+        for this application.
+    :return:
+    """
+    if isinstance(decision, int):
+        explanation = f"\n({appnum+1}) {app_name}\n"
+    else:
+        explanation = f"\n{app_name}\n"
     list_line_pos = []
     list_line_neg = []
     if decision == 'Accept':
@@ -201,8 +228,10 @@ def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, appnum
                 newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}, which is not sufficiently favorable in the ground truth data to influence a positive decision."
             list_line_pos.append(newline)
 
+        # print(app_name, len(dict_neg))
         for i in range(len(dict_neg)):
             v = dict_neg[i]
+            # print(i,v)
             if not np.isnan(v[2]):
                 newline = f"\t {i+1}.  Attribute {v[0]} of this application has value {v[1]}, which is in only the {100*v[2]:.2f} percentile of the data."
             else:
@@ -241,38 +270,43 @@ def make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, appnum
 
     return explanation
 
-def make_letter_pdf(base_latex, app_name, dict_neg, dict_pos):
-    nf1 = dict_neg[0][0]
-    nv1 = dict_neg[0][1]
-    nf2 = dict_neg[1][0]
-    nv2 = dict_neg[1][1]
-    nf3 = dict_neg[2][0]
-    nv3 = dict_neg[2][1]
-    pf1 = dict_pos[0][0]
-    pv1 = dict_pos[0][1]
+def make_letter_pdf(base_latex, app_name, p1, n1, n2, n3):
 
-    nf1 = nf1.replace('_', '\\_')
-    nf2 = nf2.replace('_', '\\_')
-    nf3 = nf3.replace('_', '\\_')
-    pf1 = pf1.replace('_', '\\_')
+    p1 = p1.replace('_', '\\_')
+    n1 = n1.replace('_', '\\_')
+    n2 = n2.replace('_', '\\_')
+    n3 = n3.replace('_', '\\_')
+
+    p1 = p1.replace('\\$', '$')
+    n1 = n1.replace('\\$', '$')
+    n2 = n2.replace('\\$', '$')
+    n3 = n3.replace('\\$', '$')
 
 
     base_latex = base_latex.replace('RESERVEDAPPID1', str(app_name))
-    base_latex = base_latex.replace('RESERVEDNEGVALUE1', str(nv1))
-    base_latex = base_latex.replace('RESERVEDNEGVALUE2', str(nv2))
-    base_latex = base_latex.replace('RESERVEDNEGVALUE3', str(nv3))
-    base_latex = base_latex.replace('RESERVEDNEGFIELD1', str(nf1))
-    base_latex = base_latex.replace('RESERVEDNEGFIELD2', str(nf2))
-    base_latex = base_latex.replace('RESERVEDNEGFIELD3', str(nf3))
-    base_latex = base_latex.replace('RESERVEDPOSVALUE1', str(pv1))
-    base_latex = base_latex.replace('RESERVEDPOSFIELD1', str(pf1))
+    base_latex = base_latex.replace('RESERVEDPOS1', str(p1))
+    base_latex = base_latex.replace('RESERVEDNEG1', str(n1))
+    base_latex = base_latex.replace('RESERVEDNEG2', str(n2))
+    base_latex = base_latex.replace('RESERVEDNEG3', str(n3))
 
     pdf_object = build_pdf(base_latex)
     pdf_bytes = pdf_object.readb()
 
     return pdf_bytes
 
-def process_apps(df_samp, model, df_ground, base_latex):
+def process_apps(df_samp, model, df_ground, dict_r2f, dict_r2explain, dict_r2explain_positive, base_latex):
+    """
+    Perform full processing of the applications
+    :param df_samp: dataframe of the applications
+    :param model: saved catboost model
+    :param df_ground: ground truth on which the model was trained
+    :param base_latex: string.  input latex file for the customer letter.  Will be programatically modified to fit the
+        given application
+    :return:
+        df_res = pandas dataframe with the decision results for each application
+        explanations = string containing explanations of the decisions intended for the lender
+        zip_bytes = bytes for a zip file containing letters to the declined applicants.
+    """
     # df_samp.reset_index(inplace=True)
     cols = ['application_id', 'decision', 'score',
             'pos_field1', 'pos_value1', 'pos_percentile1',
@@ -285,9 +319,16 @@ def process_apps(df_samp, model, df_ground, base_latex):
     explanations = ''
     dict_zip = dict()
     for i in df_samp.index:
-        print(f"{pd.to_datetime(time.time(), unit='s')}, Processing {i}")
+        # print(f"{pd.to_datetime(time.time(), unit='s')}, Processing {i}")
         df_app = df_samp.loc[[i]]
-        row, explanation, pdf_bytes = process_one(df_app, model, df_ground, base_latex, i)
+        row, explanation, pdf_bytes = process_one(df_app=df_app,
+                                                  model=model,
+                                                  df_ground=df_ground,
+                                                  dict_r2f=dict_r2f,
+                                                  dict_r2explain=dict_r2explain,
+                                                  dict_r2explain_positive=dict_r2explain_positive,
+                                                  base_latex=base_latex,
+                                                  i=i)
         rows.append(row)
         explanations = f"{explanations}\n\n{explanation}"
         if pdf_bytes is not None:
@@ -304,7 +345,7 @@ def process_apps(df_samp, model, df_ground, base_latex):
 
 
 
-def process_one(df_app, model, df_ground, base_latex, i=0):
+def process_one(df_app, model, df_ground, base_latex, dict_r2f, dict_r2explain, dict_r2explain_positive, i=0):
     df_app.reset_index(inplace=True)
     app_name = df_app.loc[0,'application_id']
     df_app = load_and_process(df_app)
@@ -312,6 +353,10 @@ def process_one(df_app, model, df_ground, base_latex, i=0):
     shap_ser = get_shap_values(model, df_app)
     dict_pos, dict_neg = get_reasons_for_lender(df_ground, shap_ser, df_samp=df_app)
     explanation = make_explanation_string(decision, prob, dict_pos, dict_neg, app_name, i)
+    if decision.upper() == 'DECLINE':
+        # print(f"\n{app_name}")
+        p1, n1, n2, n3 = get_reasons_for_applicant(shap_ser, dict_r2f, dict_r2explain, dict_r2explain_positive, how='mean')
+        # print(f"{p1}\n{n1}\n{n2}\n{n3}")
     row = [app_name, decision, prob]
     for i in range(3):
         if i in dict_pos.keys():
@@ -324,28 +369,123 @@ def process_one(df_app, model, df_ground, base_latex, i=0):
         else:
             row.extend(['None', np.nan, np.nan])
 
-    if decision == 'Decline':
+    if decision.upper() == 'DECLINE':
         pdf_bytes = make_letter_pdf(base_latex=base_latex,
                                     app_name=app_name,
-                                    dict_neg=dict_neg,
-                                    dict_pos=dict_pos)
+                                    p1=p1,
+                                    n1=n1,
+                                    n2=n2,
+                                    n3=n3)
     else:
         pdf_bytes = None
 
+
     return row, explanation, pdf_bytes
 
-def score_field_list(shap_ser, field_list):
+def score_field_list(shap_ser, field_list, how = 'sum'):
     """
-    Assigns a score to the list of fields in field_list corresponding to how much they contributed to a pos or neg decision.
-    :param shap_ser:
-    :param field_list:
-    :param decision_type:
-    :return:
+    Calculated the aggregate score to the list of fields in field_list corresponding to how much they contributed to a pos or neg decision.
+    :param shap_ser: Pandas Series of the Shapley values for each input variable of the model.  Index is the input variables.
+    :param field_list: list of field names with respect to which we want the aggregate score.
+    :return: sum or average of the shaplety values for variables in the field_list
     """
     shap_ser = shap_ser[field_list].copy()
-    return shap_ser.sum()
+    if how == 'sum':
+        return shap_ser.sum()
+    try:
+        return shap_ser.aggregate(how)
+    except:
+        return shap_ser.mean()
 
 
+def score_reasons(shap_ser, dict_r2f, how='mean'):
+    ser_reason_score = pd.Series()
+    for reason, field_list in dict_r2f.items():
+        if reason in DUPLICATE_REASONS:
+            continue
+        ser_reason_score[reason] = score_field_list(shap_ser, field_list, how)
+    # display(ser_reason_score)
+    ser_reason_scorep = ser_reason_score[ser_reason_score >= 0].copy()
+    ser_reason_scoren = ser_reason_score[ser_reason_score < 0].copy().abs()
+    ser_reason_scorep.sort_values(ascending=False, inplace=True)
+    ser_reason_scoren.sort_values(ascending=False, inplace=True)
+
+    return ser_reason_scorep, ser_reason_scoren
+
+def get_reasons_for_applicant(shap_ser, dict_r2f, dict_r2explain, dict_r2explain_positive, how='mean'):
+    """
+    TODO:  Deal with the unlikely case that a declined application has fewer than 3 negative reasons.
+    Gets latex strings for the reasons to the applicant.
+    :param shap_ser:
+    :param dict_r2f:
+    :param dict_r2explain:
+    :param how:
+    :return:
+    """
+    ser_reason_scorep, ser_reason_scoren = score_reasons(shap_ser, dict_r2f, how)
+    n1 = ser_reason_scoren.index[0]
+    n2 = ser_reason_scoren.index[1]
+    n3 = ser_reason_scoren.index[2]
+    if len(ser_reason_scorep) > 0:
+        p1 = ser_reason_scorep.index[0]
+    else:
+        p1 = ser_reason_scoren.index[-1]
+
+    # print(n1, n2, n3, p1)
+    # return n1, n2, n3, p1
+
+    n1 = dict_r2explain[n1]
+    n2 = dict_r2explain[n2]
+    n3 = dict_r2explain[n3]
+    p1 = dict_r2explain_positive[p1]
+    return p1, n1, n2, n3
+
+def promote_hard_stops(dict_neg_orig, hard_stops = None):
+    """
+    Promotes the hard stop reason fields to the top of the order in dict_neg_orig as given by keys, after ordering.
+    :param dict_neg_orig:
+    :param hard_stops:
+    :return:
+    """
+    if not hard_stops:
+        hard_stops = HARD_STOPS.copy()
+    fields = [[i, list(dict_neg_orig[i])] for i in range(len(dict_neg_orig))]
+    # print(len(fields))
+    # print(fields)
+    hard_stops_present = [x for x in fields if x[1][0] in hard_stops]
+    non_hard_present = [x for x in fields if x[1][0] not in hard_stops]
+    # print(len(hard_stops_present))
+    # print(hard_stops_present)
+    hard_stops_present.sort(key = lambda x:x[0])
+    if len(hard_stops_present) == 0 or len(hard_stops_present) == len(dict_neg_orig):
+        return dict_neg_orig
+    if len(hard_stops_present) == 1:
+        h = hard_stops_present[0]
+        old_pos = h[0]
+        if old_pos == 1:
+            fields[0][0] = 1
+            fields[1][0] = 0
+        if old_pos == 2:
+            fields[0][0] = 1
+            fields[1][0] = 2
+            fields[2][0] = 0
+    if len(hard_stops_present) == 2:
+        non = non_hard_present[0]
+        old_non = non[0]
+        if old_non == 0:
+            fields[0][0] = 2
+            fields[1][0] = 0
+            fields[2][0] = 1
+        if old_non == 1:
+            fields[1][0] = 2
+            fields[2][0] = 1
+    # print(f"NEW FIELDS {fields}")
+    dict_neg_new = {}
+    for x in fields:
+        k = x[0]
+        v = tuple(x[1])
+        dict_neg_new[k] = v
+    return dict_neg_new
 
 
 

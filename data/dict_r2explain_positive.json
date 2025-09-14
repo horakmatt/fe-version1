@@ -1,0 +1,18 @@
+{
+"AFFORDABILITY_FAIL":  "{\\bf Affordability}  -- the loan size requested is consistent with income and cashflow resilience.",
+"BUREAU_LOW": "{\\bf Credit bureu score} --  the reported credit bureau score does not indicate severely elevated risk for the loan.",
+"COLLATERAL_WEAK": "{\\bf Collateral} --  assets and guarantees offered are consistent with the loan amount.",
+"LEVERAGE_HIGH": "{\\bf Leverage ratio} -- the debt to equity ratio indicates that current debt is at an acceptable level.",
+"PEP_HIT": "{\\bf Political exposure} -- The borrower carries no significant political exposure at this time.",
+"REVIEW_COMPLIANCE":  "{\\bf Legal Compliance} -- The legal risk band for this loan is within acceptable limits for lending.",
+"REVIEW_CONFLICT": "{\\bf Consistent application data} -- Data in most fields of this application are consistent with each other.",
+"REVIEW_DOCS": "{\\bf Documentation completeness} -- none or very few items are missing from the application.",
+"VOLATILITY_HIGH": "{\\bf Cashflow Volatility} -- income and expenses do not appear to fluctuate significantly.",
+"DECLINE_CREDIT_HISTORY": "{\\bf Credit history} -- bureau data and past records do not signal elevated risk.",
+"DECLINE_KYC_FAIL": "{\\bf Identity check} -- borrower’s identity is fully verified verified.",
+"DECLINE_SANCTIONS": "{\\bf Sanctions list}  Applicant identity file did not match any prohibited sanctions list.",
+"DECLINE_SECURITY_FAIL": "{\\bf Security} --  assets and guarantees offered are consistent with the loan amount, especially if a Personal Guarantee (PG) is provided.",
+"REVIEW_NEW_BUSINESS": "{\\bf Business age} -- Business age indicates acceptable stability.",
+"REVIEW_SECTOR_RISK": "{\\bf Sector risk}  -- The loan's sector is not flagged as high risk.",
+"REVIEW_TERM_STRUCTURE": "{\\bf Term structure}  -- Loan term is appropriate for the loan."
+}

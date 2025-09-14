@@ -1,0 +1,18 @@
+{
+"AFFORDABILITY_FAIL":  "{\\bf Affordability}  -- the loan size requested appears high relative to income and cashflow resilience.",
+"BUREAU_LOW": "{\\bf Credit bureu score} --  the reported credit bureau score indicates elevated risk for the loan.",
+"COLLATERAL_WEAK": "{\\bf Collateral} --  assets and guarantees offered did not provide sufficient coverage for the loan amount.",
+"LEVERAGE_HIGH": "{\\bf High leverage ratio} -- the debt to equity ratio indicates the borrower already carries significant debt.",
+"PEP_HIT": "{\\bf Political exposure} -- The borrower carries too much political exposure for this kind of loan.",
+"REVIEW_COMPLIANCE":  "{\\bf Legal Compliance} -- The legal risk band for this loan precludes lending.",
+"REVIEW_CONFLICT": "{\\bf Conflicting application data} -- Data in different fields of this application conflict with each other.  e.g., strong bureau score but very volatile cashflows.",
+"REVIEW_DOCS": "{\\bf Documentation incomplete} -- key application items are missing.",
+"VOLATILITY_HIGH": "{\\bf Cashflow Volatility} -- income and expenses fluctuate significantly.",
+"DECLINE_CREDIT_HISTORY": "{\\bf Credit history} -- bureau data and past records signalled elevated risk.",
+"DECLINE_KYC_FAIL": "{\\bf Identity check} -- borrower’s identity or documents could not be verified.",
+"DECLINE_SANCTIONS": "{\\bf Sanctions list}  Applicant identity file matched a prohibited sanctions list.",
+"DECLINE_SECURITY_FAIL": "{\\bf Security} --  assets and guarantees offered did not provide sufficient coverage for the loan amount, especially if no Personal Guarantee (PG) is provided.",
+"REVIEW_NEW_BUSINESS": "{\\bf Business age} -- Business age (\\$<2\\$ years trading) - indicates stability concerns and elevated risk.",
+"REVIEW_SECTOR_RISK": "{\\bf Sector risk}  -- The loan's sector is flagged as high risk.",
+"REVIEW_TERM_STRUCTURE": "{\\bf Term structure}  -- Loan term unusually long (generally \\$>60\\$ months)."
+}

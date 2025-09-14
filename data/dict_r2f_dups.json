@@ -1,0 +1,82 @@
+{
+ "AFFORDABILITY_FAIL": [
+  "enrich_dscr",
+  "intake_requested_loan_gbp",
+  "intake_annual_revenue_gbp",
+  "intake_collateral_type",
+  "enrich_ltv"
+ ],
+ "BUREAU_LOW": [
+  "intake_bureau_score"
+ ],
+ "COLLATERAL_WEAK": [
+  "intake_collateral_type",
+  "enrich_ltv"
+ ],
+ "KYC_FAIL": [
+  "intake_kyc_pass"
+ ],
+ "LEVERAGE_HIGH": [
+  "enrich_leverage_ratio"
+ ],
+ "PEP_HIT": [
+  "intake_pep_hit"
+ ],
+ "REVIEW_AFFORDABILITY": [
+  "enrich_dscr",
+  "intake_requested_loan_gbp",
+  "intake_annual_revenue_gbp",
+  "enrich_leverage_ratio"
+ ],
+ "REVIEW_COMPLIANCE": [
+  "intake_aml_risk"
+ ],
+ "REVIEW_CONFLICT": [
+  "intake_bureau_score",
+  "enrich_cashflow_volatility",
+  "enrich_dscr"
+ ],
+ "REVIEW_DOCS": [
+  "intake_doc_completeness"
+ ],
+ "REVIEW_SECURITY": [
+  "intake_collateral_type",
+  "enrich_ltv",
+  "intake_personal_guarantee"
+ ],
+ "VOLATILITY_HIGH": [
+  "enrich_cashflow_volatility"
+ ],
+ "DECLINE_CREDIT_HISTORY": [
+  "intake_bureau_score",
+  "intake_ccj_count",
+  "intake_default_history"
+ ],
+ "DECLINE_KYC_FAIL": [
+  "intake_kyc_pass"
+ ],
+ "DECLINE_SANCTIONS": [
+  "intake_sanctions_hit"
+ ],
+ "DECLINE_SECURITY_FAIL": [
+  "intake_collateral_type",
+  "enrich_ltv"
+ ],
+ "REVIEW_AML": [
+  "intake_aml_risk"
+ ],
+ "REVIEW_CREDIT_HISTORY": [
+  "intake_bureau_score",
+  "intake_ccj_count",
+  "intake_default_history"
+ ],
+ "REVIEW_NEW_BUSINESS": [
+  "intake_business_age_years"
+ ],
+ "REVIEW_SECTOR_RISK": [
+  "intake_sector"
+ ],
+ "REVIEW_TERM_STRUCTURE": [
+  "intake_requested_term_months"
+ ]
+}

@@ -31,7 +31,7 @@ with open('data/dict_r2explain_positive.json', 'r') as f:
 
 
 model = CatBoostRegressor()
-model.load_model('model_files/reg1.cbm')
+# model.load_model('model_files/reg1.cbm')
 
 st.title("Loan Application Evaluation Dashboard")
 st.subheader("General Model Information.")
@@ -78,6 +78,10 @@ while len(triage_or_full) == 1:
     )
 if len(triage_or_full) > 1:
     st.write(f"Thank you.  Proceeding with the {triage_or_full.lower()}.")
+    if triage_or_full == 'Full model':
+        model.load_model('model_files/reg1.cbm')
+    else:
+        model.load_model('model_files/triage_reg1.cbm')
 
     st.write("Please upload the csv file containing the loan applications to be evaluated in csv format following the sample above.")
     uploaded_file = st.file_uploader("", type=["csv"])

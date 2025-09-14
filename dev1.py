@@ -81,6 +81,7 @@ st.write("Please upload the csv file containing the loan applications to be eval
 uploaded_file = st.file_uploader("", type=["csv"])
 
 if uploaded_file is not None and len(triage_or_full) > 1:
+    st.write(f"Thank you.  Proceeding with the {triage_or_full.lower()}.")
     # try:
         # Read the uploaded CSV file into a pandas DataFrame
     df_samp = pd.read_csv(uploaded_file)

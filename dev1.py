@@ -10,7 +10,6 @@ from catboost import datasets
 import shap
 
 import utils
-from nbs.deploy_dev.score_pre_written_reasons2 import dict_r2explain_positive
 
 df_ground = pd.read_csv('data/train.csv')
 df_sample_data = pd.read_csv('data/sample_data.csv')

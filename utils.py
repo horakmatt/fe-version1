@@ -228,7 +228,7 @@ def get_reasons_for_lender(df_ground, shap_ser, df_samp):
             pctile = find_loc_in_data(df_ground, c, val)
             dict_pos[i] = (c, val, pctile)
         else:
-            dict_pos[i] = (c, sv, np.nan)
+            dict_pos[i] = (c, val, np.nan)
     dict_neg = dict()
     for i,c in enumerate(neg):
         sv = shap_neg[c]

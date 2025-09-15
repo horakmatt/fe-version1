@@ -96,12 +96,13 @@ if len(triage_or_full) > 1:
         st.write(f"We received and will evaluate the application data for {len(df_samp)} applicants.")
 
         df_res, explanations, zip_bytes = utils.process_apps(df_samp=df_samp,
-                                                            model=model,
-                                                            df_ground=df_ground,
+                                                             model=model,
+                                                             df_ground=df_ground,
                                                              dict_r2f=dict_r2f,
                                                              dict_r2explain=dict_r2explain,
                                                              dict_r2explain_positive=dict_r2explain_positive,
-                                                            base_latex=base_latex)
+                                                             base_latex=base_latex,
+                                                             tf=tf)
         summary_csv = df_res.to_csv(index=False)
 
         st.subheader("Loan Decisions and Downloads")
